@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
+<title>test</title>
+<style>
+	body, ul, dl{margin:0;padding:0;list-style:none;}
+	#menu{position:relative;margin:100px;width:200px;}
+	dd{padding:10px 20px;background:#e0e0e0;margin:0;position:relative;border-bottom:1px solid #aaa;border-top:1px solid #fff;}
+	#twoMenu{position:absolute;top:0;left:200px;width:0px;height:100%;background:#444;min-height:380px;overflow:hidden;}
+	ul{display:none;width:100%;height:100%;}
+	li{padding:10px 20px;color:#eee;}
+	dd.chose{background:#444;color:#eee;}
+	dd.chose ul{display:block;}
+</style>
+</head>
+<body class="style_orange" style="overflow:hidden;">
+<div id="menu">
+	<div id="m" style="background:#f00;position:absolute;top:0;left:0;height:4px;width:4px;z-index:1;"></div>
+	<dl id="oneMenu">
+		
+	</dl>
+	<div id="twoMenu">
+		
+	</div>
+</div>
+<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+<script src="taMenu.js"></script>
+<script>
+	(function() {
+		var 
+			i = 0,
+			max = 10,
+			menu = $('#oneMenu'),
+			nav = $('#twoMenu'),
+			firstMenu,
+			secondMenu,
+			top = menu.offset().top;
+			
+		for(; i < max; i++) {
+			firstMenu = '<dd class="list"> menu ' + (i + 1) + '</dd>';
+			var $firstMenu = $(firstMenu).appendTo(menu);
+			var ulTop = -($firstMenu.offset().top - top);
+			var slen = Math.ceil(Math.random() * 10);
+			var j = 0;
+			var $ul = $('<ul class="list"></ul>').appendTo(nav);
+			for(; j < slen; j++) {
+				secondMenu = '<li>second menu ' + (i + 1) + '-' + (j + 1) + '</li>';
+				$ul.append(secondMenu);
+				//$(secondMenu).appendTo($firstMenu.children('ul').css({'top': ulTop}));
+			}
+		}
+	})();	
+	
+	$('#menu').taMenu();
+	
+</script>
+</body>
+</html>
