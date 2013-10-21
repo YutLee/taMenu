@@ -15,78 +15,19 @@
 					firstMenu = oneMenu.find('.list'),
 					secondMenu = twoMenu.find('.list'),
 					leavePointX = null, leavePointY = null,
-					play, isB = false, isFirst = true, isOnFirstMenu = false, isOnSecondMenu = false,
-					cache = [],
-					TIMEOUT = 10;
+					play, isFirst = true, isOnSecondMenu = false,
+					cache = [];
 					
-				oneMenu.bind({
-					'mouseenter': function() {
-						isOnFirstMenu = true;
-						setTimeout(function() {
-							if(isFirst) {
-								twoMenu.animate({width: o.width}, 200);
-							}
-						}, TIMEOUT);
-					},
-					'mouseleave': function() {
-						leavePointX = null;
-						leavePointY = null;
-						clearTimeout(play);
-						isOnFirstMenu = false;
-						setTimeout(function() {
-							onLeave(isOnSecondMenu);
-						}, TIMEOUT);			
-					}
-				});
-				
-				firstMenu.bind({
-					'mouseenter': function(e) {
-						onFrist($(this), e);
-					},
-					'mousemove': function(e) {
-						cache.push([e.pageY, e.pageX]);
-					}
-				});
-				
-				twoMenu.bind({
-					'mouseenter': function() {
-						isOnSecondMenu = true;
-					},
-					'mouseleave': function() {
-						isOnSecondMenu = false;
-						setTimeout(function() {
-							onLeave(isOnFirstMenu);
-						}, TIMEOUT);
-					}
-				});
-				
-				leaveNode();
-				
-				function onLeave(isOnMenu) {
-					if(!isOnMenu) {
-						var idx = -1;
-						firstMenu.each(function(index) {
-							if($(this).hasClass('chose')) {
-								$(this).removeClass('chose');
-								idx = index;
-							}
-						});
-						secondMenu.eq(idx).hide();
-						twoMenu.css({'width': 0});
-						isFirst = true;
-					}else {
-						isFirst = false;
-					}
+				function hide() {
+					twoMenu.css({width: 0});
+					var now = oneMenu.find('.chose'),
+						idx = now.index();
+					now.removeClass('chose');
+					secondMenu.eq(idx).hide();
+					leavePointX = null;
+					leavePointY = null;
 				}
-				
-				function leaveNode() {
-					firstMenu.bind({
-						'mouseleave': function(e) {
-							leaveFirst($(this), e);
-						}
-					});
-				}
-				
+
 				function onFrist(el, e) {
 					var idx = el.index(),
 						ul = secondMenu.eq(idx);
@@ -96,26 +37,21 @@
 						farthestBottomX = farthestTopX,
 						farthestBottomY = twoMenu.offset().top + twoMenu.outerHeight(),
 						buffer;
-					clearTimeout(play);
+					
 					if (isBuffer(e, el, leavePointX, leavePointY, farthestTopX, farthestTopY, farthestBottomX, farthestBottomY)) {
-						isB = true;
-						firstMenu.unbind('mouseleave');
-
 						play = setTimeout(function() {
 							if(!isOnSecondMenu) {
 								el.addClass('chose').siblings('.chose').removeClass('chose');
 								ul.show().siblings().hide();
-								leaveNode();
 							}
 						}, o.delay);
 					}else {
-						isB = false;
-						leaveNode();
+						if(isFirst) { 
+							twoMenu.animate({width: o.width}, 200);
+						}
 						el.addClass('chose').siblings('.chose').removeClass('chose');
 						ul.show().siblings().hide();
-					}
-					if(leavePointX == null || leavePointY == null) {
-						isB = true;
+						
 					}
 				}
 				
@@ -174,6 +110,61 @@
 						return pageY < onLinePonitY ? true : false;
 					}
 				}
+				
+				oneMenu.bind({
+					'mouseenter': function() {
+						isFirst = false;
+					},
+					'mouseleave': function() {
+						isFirst = true;
+					},
+					'mousemove': function() {
+						isFirst = false;
+						return false;
+					}
+				});
+				
+				firstMenu.not(firstMenu.last()[0]).bind({
+					'mouseenter': function(e) {
+						onFrist($(this), e);
+					},
+					'mousemove': function(e) {
+						cache.push([e.pageY, e.pageX]);
+					},
+					'mouseleave': function(e) {
+						clearTimeout(play);
+						leaveFirst($(this), e);
+					}
+				});
+				
+				firstMenu.last().bind({
+					'mouseenter': function() {
+						return false;
+					},
+					'mousemove': function() {
+						return false;
+					}
+				});
+				
+				twoMenu.bind({
+					'mouseenter': function() {
+						isOnSecondMenu = true;
+						isFirst = false;
+					},
+					'mouseleave': function() {
+						isOnSecondMenu = false;
+						isFirst = true;
+					},
+					'mousemove': function() {
+						return false;
+					}
+				});
+				
+				$(document).bind({
+					'mousemove': function() {
+						hide();
+					}
+				});
 				
 			});
 		};

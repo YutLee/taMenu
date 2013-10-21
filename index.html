@@ -25,7 +25,7 @@
 		
 	</div>
 </div>
-<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+<script src="jquery-1.8.3.min.js"></script>
 <script src="taMenu.js"></script>
 <script>
 	(function() {
@@ -51,6 +51,7 @@
 				//$(secondMenu).appendTo($firstMenu.children('ul').css({'top': ulTop}));
 			}
 		}
+		menu.append('<dd class="list">all</dd>');
 	})();	
 	
 	$('#menu').taMenu();
