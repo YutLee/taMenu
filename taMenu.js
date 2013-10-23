@@ -15,10 +15,11 @@
 				firstMenu = oneMenu.find('.list'),
 				secondMenu = twoMenu.find('.list'),
 				leavePointX = null, leavePointY = null,
-				play, isFirst = true, isOnSecondMenu = false,
+				play, firstOpen, isNoneOpen = true, isFirst = true, isOnSecondMenu = false,
 				cache = [];
 				
 			function hide() {
+				isNoneOpen = true;
 				twoMenu.css({width: 0});
 				var now = oneMenu.find('.chose'),
 					idx = now.index();
@@ -37,21 +38,30 @@
 					farthestBottomX = farthestTopX,
 					farthestBottomY = twoMenu.offset().top + twoMenu.outerHeight(),
 					buffer;
-				
-				if (isBuffer(e, el, leavePointX, leavePointY, farthestTopX, farthestTopY, farthestBottomX, farthestBottomY)) {
-					play = setTimeout(function() {
-						if(!isOnSecondMenu) {
-							el.addClass('chose').siblings('.chose').removeClass('chose');
-							ul.show().siblings().hide();
-						}
-					}, o.delay);
-				}else {
-					if(isFirst) { 
-						twoMenu.animate({width: o.width}, 200);
-					}
+					
+				function show() {
 					el.addClass('chose').siblings('.chose').removeClass('chose');
 					ul.show().siblings().hide();
-					
+				}
+				
+				if(isNoneOpen) {
+					firstOpen = setTimeout(function() {
+						if(isFirst) { 
+							twoMenu.animate({width: o.width}, 200);
+						}
+						show();
+						isNoneOpen = false;
+					}, 300);
+				}else {
+					if (isBuffer(e, el, leavePointX, leavePointY, farthestTopX, farthestTopY, farthestBottomX, farthestBottomY)) {
+						play = setTimeout(function() {
+							if(!isOnSecondMenu) {
+								show();
+							}
+						}, o.delay);
+					}else {
+						show();
+					}
 				}
 			}
 			
@@ -113,19 +123,22 @@
 			
 			oneMenu.bind({
 				'mouseenter': function() {
-					isFirst = false;
+					//isFirst = false;
 				},
 				'mouseleave': function() {
 					isFirst = true;
 				},
 				'mousemove': function() {
-					isFirst = false;
+					if(!isNoneOpen) {
+						isFirst = false;
+					}
 					return false;
 				}
 			});
 			
 			firstMenu.not(firstMenu.last()[0]).bind({
 				'mouseenter': function(e) {
+					
 					onFrist($(this), e);
 				},
 				'mousemove': function(e) {
@@ -133,6 +146,7 @@
 				},
 				'mouseleave': function(e) {
 					clearTimeout(play);
+					clearTimeout(firstOpen);
 					leaveFirst($(this), e);
 				}
 			});
