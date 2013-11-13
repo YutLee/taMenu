@@ -4,13 +4,17 @@
 			oneMenu: '.oneMenu', 
 			twoMenu: '.twoMenu',
 			chose: 'chose',
-			orientation: 'vertical',	//horizontal
-			delay: 300,
-			width: 400
+			orientation: 'vertical',
+			delay: 300
 		}, options);
 		
+		var isFunction = $.isFunction,
+			CHOSE = o.chose,
+			choseClass = '.' + CHOSE;
+		
 		return this.each(function() {
-			var $t = $(this),
+			var that = this,
+				$t = $(that),
 				oneMenu = $t.find(o.oneMenu),
 				twoMenu = $t.find(o.twoMenu),
 				firstMenu = oneMenu.find('.list'),
@@ -21,11 +25,15 @@
 				
 			function hide() {
 				isNoneOpen = true;
-				twoMenu.css({width: 0});
-				var now = oneMenu.find('.chose'),
+				//twoMenu.css({width: 0});
+				
+				var now = oneMenu.find(choseClass),
 					idx = now.index();
-				now.removeClass('chose');
+				now.removeClass(CHOSE);
 				secondMenu.eq(idx).hide();
+				if(isFunction(o.closeCall)) {
+					o.closeCall.call(that, $t, oneMenu, twoMenu);
+				}
 				leavePointX = null;
 				leavePointY = null;
 			}
@@ -40,39 +48,53 @@
 					farthestBottomY,
 					buffer;
 					
-				if(o.orientation === 'vertical') {
-					farthestTopX = twoMenu.offset().left;
-					farthestTopY = twoMenu.offset().top;
-					farthestBottomX = farthestTopX;
-					farthestBottomY = farthestTopY + twoMenu.outerHeight();
-				}else if(o.orientation === 'horizoncal'){
-					farthestTopX = twoMenu.offset().left;
-					farthestTopY = twoMenu.offset().top + twoMenu.outerHeight();
-					farthestBottomX = farthestTopX + twoMenu.outerWidth();
-					farthestBottomY = farthestTopY;
+				function getOffset() {
+					if(o.orientation === 'vertical') {
+						farthestTopX = twoMenu.offset().left;
+						farthestTopY = twoMenu.offset().top;
+						farthestBottomX = farthestTopX;
+						farthestBottomY = farthestTopY + twoMenu.outerHeight();
+					}else if(o.orientation === 'horizontal') {
+						farthestTopX = twoMenu.offset().left;
+						farthestTopY = twoMenu.offset().top + twoMenu.outerHeight();
+						farthestBottomX = farthestTopX + twoMenu.outerWidth();
+						farthestBottomY = farthestTopY;
+					}
 				}
 					
 				function show() {
-					el.addClass('chose').siblings('.chose').removeClass('chose');
+					el.addClass(CHOSE).siblings(choseClass).removeClass(CHOSE);
 					ul.show().siblings().hide();
 				}
-				
+
 				if(isNoneOpen) {
 					firstOpen = setTimeout(function() {
 						if(isFirst) { 
-							twoMenu.animate({width: o.width}, 200);
+							if(isFunction(o.openCall)) {
+								o.openCall.call(that, $t, oneMenu, twoMenu, el, ul);
+							}
+							//twoMenu.animate({width: o.width}, 200);
 						}
 						show();
 						isNoneOpen = false;
 					}, 300);
 				}else {
-					if (isBuffer(e, el, leavePointX, leavePointY, farthestTopX, farthestTopY, farthestBottomX, farthestBottomY)) {
+					getOffset();
+					if (isBuffer(e, leavePointX, leavePointY, farthestTopX, farthestTopY, farthestBottomX, farthestBottomY)) {
 						play = setTimeout(function() {
 							if(!isOnSecondMenu) {
+								if(isFunction(o.setOffsetCall)) {
+									o.setOffsetCall.call(that, $t, oneMenu, twoMenu, el, ul);
+									getOffset();
+								}
 								show();
 							}
 						}, o.delay);
 					}else {
+						if(isFunction(o.setOffsetCall)) {
+							o.setOffsetCall.call(that, $t, oneMenu, twoMenu, el, ul);
+							getOffset();
+						}
 						show();
 					}
 				}
@@ -87,43 +109,43 @@
 				if(len <= 0) {
 					return false;
 				}
+				
 				if(o.orientation === 'vertical') {
 				
-					midd = el.offset().left + (el.outerWidth()) * .5;
+					midd = el.offset().top + (el.outerHeight()) * .5;
 					
 					all.sort(function(a, b) {return a[1] - b[1];});
 					
-					if(all[len-1][1] < midd) {
-						leavePointX = all[len-1][1];
-					}else if(all[0][1] > midd) {
+					if(all[len-1][1] <= midd) {
+						leavePointX = all[len-1][0];
+					}else if(all[0][1] >= midd) {
 						leavePointX = all[0][0];
 					}else {
 						leavePointX = all[Math.ceil(len * .5)][0];
 					}
 					leavePointY = midd;
-					console.log(leavePointX);
 					$t.find('.m').css({'top': leavePointY - 102, 'left': leavePointX - 102});
-				}else if(o.orientation === 'horizoncal') {
+				}else if(o.orientation === 'horizontal') {
 				
-					midd = el.offset().top + (el.outerHeight()) * .5;
+					midd = el.offset().left + (el.outerWidth()) * .5;
 					
 					all.sort(function(a, b) {return a[0] - b[0];});
 					
-					if(all[len-1][0] < midd) {
+					if(all[len-1][0] <= midd) {
 						leavePointY = all[len-1][1];
-					}else if(all[0][0] > midd) {
+					}else if(all[0][0] >= midd) {
 						leavePointY = all[0][1];
 					}else {
 						leavePointY = all[Math.ceil(len * .5)][1];
 					}
 					leavePointX = midd;
-					//$t.find('.m').css({'top': leavePointY, 'left': leavePointX});
+					//console.log(leavePointX + ' ' + e.pageX, leavePointY + ' ' + e.pageY);
+					$t.find('.m').css({'top': leavePointY - 400, 'left': leavePointX - 800});
 				}
 			}
 
 			/**
 			 * 求出鼠标离开当前节点进入下个节点时需要延迟的区域（直线方程 y-y0=k*(x-x0)）
-			 * @param {Element} nextNode 下个节点
 			 * @param {number} leaveX 离开点 X 坐标
 			 * @param {number} leaveY 离开点 Y 坐标
 			 * @param {number} farthestTopX 鼠标离开点上面的最远点 X 坐标
@@ -132,35 +154,33 @@
 			 * @param {number} farthestBottomY 鼠标离开点下面的最远点 Y 坐标
 			 * @return {boolean} true 表示在三角区域内 
 			 */
-			function isBuffer(e, nextNode, leaveX, leaveY, farthestTopX, farthestTopY, farthestBottomX, farthestBottomY) {
+			function isBuffer(e, leaveX, leaveY, farthestTopX, farthestTopY, farthestBottomX, farthestBottomY) {
 				var pageX = e.pageX,
 					pageY = e.pageY,
-					minY = nextNode.offset().top,
-					maxY = minY + nextNode.outerHeight(),
-					minX, maxX, k,
+					k,
 					onLinePonitY;
 				if(leaveX == null || leaveY == null) {
 					return false;
 				}
 				if(o.orientation === 'vertical') {
-					if(pageY <= leaveY) {//最远点取鼠标离开点上面的点
+					if(pageY < leaveY) {//最远点取鼠标离开点上面的点
 						k = (farthestTopY - leaveY) / (farthestTopX - leaveX);
 						onLinePonitY = k * (pageX - leaveX) + leaveY;
 						return pageY >= onLinePonitY ? true : false;
 					}else if(pageY > leaveY) {//最远点取鼠标离开点下面的点
 						k = (leaveY - farthestBottomY) / (leaveX - farthestBottomX);
 						onLinePonitY = k * (pageX - leaveX) + leaveY;
-						return pageY < onLinePonitY ? true : false;
+						return pageY <= onLinePonitY ? true : false;
 					}
-				}else if(o.orientation === 'horizoncal') {
-					if(pageX <= leaveX) {//最远点取鼠标离开点上面的点
+				}else if(o.orientation === 'horizontal') {
+					if(pageX < leaveX) {//最远点取鼠标离开点左边的点
 						k = (farthestTopY - leaveY) / (farthestTopX - leaveX);
 						onLinePonitY = k * (pageX - leaveX) + leaveY;
-						return pageY >= onLinePonitY ? true : false;
-					}else if(pageX > leaveX) {//最远点取鼠标离开点下面的点
+						return pageY <= onLinePonitY ? true : false;
+					}else if(pageX > leaveX) {//最远点取鼠标离开点右边的点
 						k = (leaveY - farthestBottomY) / (leaveX - farthestBottomX);
 						onLinePonitY = k * (pageX - leaveX) + leaveY;
-						return pageY < onLinePonitY ? true : false;
+						return pageY <= onLinePonitY ? true : false;
 					}
 				}
 			}

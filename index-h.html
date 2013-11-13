@@ -6,7 +6,7 @@
 <title>test</title>
 <style>
 	body, ul, dl{margin:0;padding:0;list-style:none;}
-	#menu{position:relative;margin:100px;width:200px;}
+	#menu{position:relative;margin:100px;width:200px;float:left;}
 	dd{padding:10px 20px;background:#e0e0e0;margin:0;position:relative;border-bottom:1px solid #aaa;border-top:1px solid #fff;}
 	.twoMenu{position:absolute;top:0;left:200px;width:0px;height:100%;background:#444;min-height:380px;overflow:hidden;}
 	ul{display:none;width:100%;height:100%;}
@@ -14,9 +14,9 @@
 	dd.chose{background:#444;color:#eee;}
 	dd.chose ul{display:block;}
 	
-	#hMenu{position:relative;margin:100px;width:600px;}
+	#hMenu{float:left;position:relative;margin:400px;width:600px;}
 	#hMenu dd{float:left;}
-	#hMenu  .twoMenu{top: -380px;left:0;}
+	#hMenu  .twoMenu{top: -378px;left:0;width:400px;height:0;min-height:0;}
 </style>
 </head>
 <body class="style_orange" style="overflow:hidden;">
@@ -30,7 +30,7 @@
 	</div>
 </div>
 <script src="jquery-1.8.3.min.js"></script>
-<script src="taMenu.js"></script>
+<script src="taMenu.h.js"></script>
 <script>
 	(function() {
 		var 
@@ -60,8 +60,44 @@
 		$('#menu').clone().attr('id', 'hMenu').appendTo('body');
 	})();	
 	
-	$('#menu').taMenu();
-	$('#hMenu').taMenu({orientation: 'horizoncal'});
+	$('#menu').taMenu({
+		closeCall: function(t, o, s) {
+			s.animate({width: 0}, 0);
+		},
+		openCall: function(t, o, s) {
+			s.animate({width: 400}, 200);
+		}
+	});
+	$('#hMenu').taMenu({
+		orientation: 'horizontal',
+		closeCall: function(t, o, s) {
+			s.css({height: 0, top: 0});
+		},
+		openCall: function(t, o, s, olist, slist) {
+			var pos = {
+					left: olist.offset().left - t.offset().left,
+					top :  olist.offset().top - t.offset().top - 400,
+					height: 400
+				},
+				maxLeft = t.width() - s.outerWidth();
+			if(pos.left > maxLeft) {
+				pos.left = maxLeft;
+			}
+			s.animate(pos, 200);
+		},
+		setOffsetCall: function(t, o, s, olist, slist) {
+			var pos = {
+					left: olist.offset().left - t.offset().left,
+					top :  olist.offset().top - t.offset().top - 400
+				},
+				maxLeft = t.width() - s.outerWidth();
+				
+			if(pos.left > maxLeft) {
+				pos.left = maxLeft;
+			}
+			s.animate(pos, 200);
+		},
+	});
 </script>
 </body>
 </html>
